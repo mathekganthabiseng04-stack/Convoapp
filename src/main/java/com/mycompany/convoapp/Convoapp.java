@@ -1,8 +1,8 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  */
-
 package com.mycompany.convoapp;
+
 import java.util.Scanner;
 import java.io.IOException;
 import java.util.List;
@@ -12,15 +12,16 @@ import java.util.List;
  * @author admin
  */
 public class Convoapp {
- private static String currentUser = "Unknown";
-    public static void main(String[] args) {
-        
 
+    private static String currentUser = "Unknown";
+
+    public static void main(String[] args) {
 
         Scanner input = new Scanner(System.in);
-        Login login = null;
+       
+        Login isLogin = null;
         boolean registrationSuccessful = false;
-        
+
         // LOOP 1: REGISTRATION SECTION (Repeats until all inputs are valid)
         do {
             System.out.println("\n--- REGISTRATION ---");
@@ -37,13 +38,16 @@ public class Convoapp {
             String password = input.nextLine();
 
             // Create an instance to validate these inputs
-            login = new Login(name, username, phonenumber, password);
+        
+            
+            // Create an instance to validate these inputs
+        isLogin = new Login(name, username, phonenumber, password);
 
-            // RUN VALIDATION CHECKS
-            boolean isNameValid = login.checkname();
-            boolean isUsernameValid = login.checkusername();
-            boolean isPhoneValid = login.checkphonenumber();
-            boolean isPasswordValid = login.checkpassword();
+// RUN VALIDATION CHECKS
+boolean isNameValid = isLogin.checkname();
+boolean isUsernameValid = isLogin.checkusername();
+boolean isPhoneValid = isLogin.checkphonenumber();
+boolean isPasswordValid = isLogin.checkpassword();
 
             // Display individual status messages
             if (isNameValid) {
@@ -80,47 +84,33 @@ public class Convoapp {
 
         } while (!registrationSuccessful);
 
-        
         // LOOP 2: LOGIN SECTION (Now accepts Username OR Phone Number)
-        boolean loginSuccessful = false;
-        
-        do {  
-            System.out.println("--- LOGIN ---");
-            System.out.print("Enter Username or Phone Number:");
-            String loginIdentifier = input.nextLine();
+      // LOOP 2: LOGIN SECTION (accepts Username OR Phone Number)
+boolean loginSuccessful = false;
+int attempts = 0;
 
-            System.out.print("Enter your password :");
-            String isloginpassword = input.nextLine();
+do {
+    System.out.println("--- LOGIN ---");
+    System.out.print("Enter Username or Phone Number: ");
+    String loginIdentifier = input.nextLine().trim();
 
-            // Check if login  match either username OR phonenumber
-            // We use your existing checkusername method, and also verify against the registered phonenumber
-            if (login.checkusername(loginIdentifier, isloginpassword)) {
-                
-                System.out.println("Login successful! " + loginIdentifier + " WELCOME TO WECHAT!");
-                loginSuccessful = true; // Exits the login loop
-            } else {
-                System.out.println("Invalid username/phone number or password.");
-            }
+    System.out.print("Enter your password: ");
+    String loginPassword = input.nextLine();
 
-        } while (!loginSuccessful);
-    
- 
+    // Use your existing Login method, and store the result so the loop can end
+    loginSuccessful = isLogin.checkLogin(loginIdentifier, loginPassword);
 
-
-        // Only logged-in users may send messages.
-        if (!loginStub(input)) {
-            System.out.println("Login failed. You cannot send messages.");
-            return;
+    if (loginSuccessful) {
+        currentUser = loginIdentifier;      // used as the message sender
+        System.out.println("Welcome to Convoapp.");
+    } else {
+        System.out.println("Login failed. Please try again.");
+        if (attempts >= 3) {
+            System.out.println("Too many failed attempts. You cannot send messages.");
+            return;                          // stop the program after 3 wrong attempts
         }
-      System.out.println("Welcome to Convoapp.");
-
-        // Load any messages saved in messages.json into the stored messages array
-        try {
-            MessageManager.loadStoredFromJson();
-        } catch (IOException e) {
-            System.out.println("Could not read stored messages: " + e.getMessage());
-        }
-
+    }
+} while (!loginSuccessful);
         // The user decides how many messages they want to enter
         int maxMessages = readInt(input, "How many messages do you wish to enter? ");
         int enteredMessages = 0;
@@ -166,7 +156,6 @@ public class Convoapp {
     }
 
     // ---------- Sending a message ----------
-
     private static void handleNewMessage(Scanner sc) {
         // Recipient: repeat until the number is valid
         String recipient;
@@ -189,12 +178,11 @@ public class Convoapp {
                 System.out.println("The message cannot be empty.");
             } else if (text.length() > 250) {
                 System.out.println("Please enter a message of less than 250 characters.");
-            } else {
-                System.out.println("Message sent");
+            }else{
                 break;
-            }
+            
+            }  
         }
-
         Message msg = new Message(recipient, text);
         msg.setSender(currentUser);
         System.out.println("Message ID generated: " + msg.getMessageID());
@@ -226,7 +214,6 @@ public class Convoapp {
     }
 
     // ---------- Fourth main menu option: Stored Messages ----------
-
     private static void storedMessagesMenu(Scanner sc) {
         // Re-read the JSON file so the stored array is always up to date
         try {
@@ -248,8 +235,10 @@ public class Convoapp {
             System.out.println("0) Back");
 
             switch (readInt(sc, "Choice: ")) {
-                case 1 -> System.out.println(MessageManager.displaySenderAndRecipient());
-                case 2 -> System.out.println(MessageManager.longestStoredMessage());
+                case 1 ->
+                    System.out.println(MessageManager.displaySenderAndRecipient());
+                case 2 ->
+                    System.out.println(MessageManager.longestStoredMessage());
                 case 3 -> {
                     System.out.print("Enter message ID: ");
                     System.out.println(MessageManager.searchByMessageID(sc.nextLine().trim()));
@@ -269,16 +258,18 @@ public class Convoapp {
                     System.out.print("Enter message hash: ");
                     System.out.println(MessageManager.deleteByHash(sc.nextLine().trim()));
                 }
-                case 6 -> System.out.println(MessageManager.reportStored());
-                case 0 -> back = true;
-                default -> System.out.println("Please choose a number from the menu.");
+                case 6 ->
+                    System.out.println(MessageManager.reportStored());
+                case 0 ->
+                    back = true;
+                default ->
+                    System.out.println("Please choose a number from the menu.");
             }
         }
     }
 
-    // ---------- Helpers ----------
+    //  Keeps asking until the user types a whole number.
 
-    /** Keeps asking until the user types a whole number. */
     private static int readInt(Scanner sc, String prompt) {
         while (true) {
             if (!prompt.isEmpty()) {
@@ -293,7 +284,9 @@ public class Convoapp {
         }
     }
 
-    /** Placeholder for your Part 1 login. Replace this with your own Login class. */
+    // Placeholder for your Part 1 login. Replace this with your own Login
+    // class.
+  
     private static boolean loginStub(Scanner sc) {
         System.out.print("Username: ");
         String user = sc.nextLine();
@@ -301,4 +294,5 @@ public class Convoapp {
         String pass = sc.nextLine();
         currentUser = user;
         return !user.isBlank() && !pass.isBlank();
-    }}
+    }
+}
