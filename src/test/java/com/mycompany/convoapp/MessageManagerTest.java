@@ -51,7 +51,7 @@ class MessageManagerTest {
         m5.sentMessage(3);   // Stored
     }
 
-    // ---------- Arrays ----------
+    
 
     @Test
     void sentMessagesArrayCorrectlyPopulated() {
@@ -72,15 +72,14 @@ class MessageManagerTest {
         assertTrue(MessageManager.getMessageHashes().contains(m2.getMessageHash()));
     }
 
-    // ---------- Longest message ----------
+ 
 
     @Test
     void displayLongestMessage() {
         assertEquals(TEXT_2, MessageManager.longestStoredMessage());
     }
 
-    // ---------- Search by message ID ----------
-
+  
     @Test
     void searchForMessageID() {
         assertEquals(TEXT_4, MessageManager.findByMessageID("4000000004").getMessageText());
@@ -91,14 +90,13 @@ class MessageManagerTest {
         assertTrue(MessageManager.searchByMessageID("9999999999").startsWith("No message found"));
     }
 
-    // ---------- Search by recipient ----------
-
+    
     @Test
     void searchMessagesByRecipient() {
         assertEquals(List.of(TEXT_2, TEXT_5), MessageManager.searchByRecipient("+27838884567"));
     }
 
-    // ---------- Delete by hash ----------
+    
 
     @Test
     void deleteMessageUsingHash() throws IOException {
@@ -114,8 +112,7 @@ class MessageManagerTest {
         assertTrue(MessageManager.deleteByHash("XX:9:NOTHING").startsWith("No stored message"));
     }
 
-    // ---------- Reports ----------
-
+    
     @Test
     void displayReport() {
         String report = MessageManager.reportStored();
