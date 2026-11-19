@@ -4,12 +4,15 @@
 
 package com.mycompany.convoapp;
 import java.util.Scanner;
+import java.io.IOException;
+import java.util.List;
+
 /**
  *
  * @author admin
  */
 public class Convoapp {
-
+ private static String currentUser = "Unknown";
     public static void main(String[] args) {
         
 
@@ -100,60 +103,72 @@ public class Convoapp {
             }
 
         } while (!loginSuccessful);
-    }
-    public class QuickChat {
+    
+ 
 
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
 
-        // 1. Only logged-in users may send messages.
-        // TODO: replace this stub with your Part 1 login/registration code.
-        if (!loginStub(sc)) {
+        // Only logged-in users may send messages.
+        if (!loginStub(input)) {
             System.out.println("Login failed. You cannot send messages.");
             return;
         }
+      System.out.println("Welcome to Convoapp.");
 
-        // 2. Welcome message
-        System.out.println("Welcome to QuickChat.");
+        // Load any messages saved in messages.json into the stored messages array
+        try {
+            MessageManager.loadStoredFromJson();
+        } catch (IOException e) {
+            System.out.println("Could not read stored messages: " + e.getMessage());
+        }
 
-        // 5. User defines how many messages they want to enter
-        int maxMessages = readInt(sc, "How many messages do you wish to enter? ");
+        // The user decides how many messages they want to enter
+        int maxMessages = readInt(input, "How many messages do you wish to enter? ");
         int enteredMessages = 0;
 
-        // 4. Run until the user quits
+        // Run until the user selects Quit
         boolean running = true;
         while (running) {
             System.out.println("\nChoose an option:");
             System.out.println("1) Send Messages");
             System.out.println("2) Show recently sent messages");
             System.out.println("3) Quit");
+            System.out.println("4) Stored Messages");
 
-            int option = readInt(sc, "Option: ");
+            int option = readInt(input, "Option: ");
 
             switch (option) {
-                case 1 -> {
+                case 1:
                     if (enteredMessages >= maxMessages) {
                         System.out.println("You have already entered all " + maxMessages + " messages.");
-                        break;
-                    }
-                    if (handleNewMessage(sc)) {
+                    } else {
+                        handleNewMessage(input);
                         enteredMessages++;
                     }
-                }
-                case 2 -> System.out.println("Coming Soon.");
-                case 3 -> running = false;
-                default -> System.out.println("Please choose 1, 2 or 3.");
+                    break;
+                case 2:
+                    System.out.println("Coming Soon.");
+                    break;
+                case 3:
+                    running = false;
+                    break;
+                case 4:
+                    storedMessagesMenu(input);
+                    break;
+                default:
+                    System.out.println("Please choose 1, 2, 3 or 4.");
             }
         }
 
-        // Total accumulated once all messages have been sent
+        // Total number of messages sent, plus their full details
         System.out.println("\nTotal messages sent: " + Message.returnTotalMessages());
         System.out.println(Message.printMessages());
+        System.out.println("Goodbye.");
     }
 
-    /** Captures one message. Returns true if the message was used (sent/stored/discarded). */
-    private static boolean handleNewMessage(Scanner sc) {
-        // Recipient
+    // ---------- Sending a message ----------
+
+    private static void handleNewMessage(Scanner sc) {
+        // Recipient: repeat until the number is valid
         String recipient;
         while (true) {
             System.out.print("Recipient cell number (e.g. +27718693002): ");
@@ -165,42 +180,105 @@ public class Convoapp {
             }
         }
 
-        // Message text (max 250 characters)
+        // Message text: maximum 250 characters
         String text;
         while (true) {
             System.out.print("Enter your message: ");
             text = sc.nextLine();
-            if (text.length() <= 250) {
+            if (text.isBlank()) {
+                System.out.println("The message cannot be empty.");
+            } else if (text.length() > 250) {
+                System.out.println("Please enter a message of less than 250 characters.");
+            } else {
                 System.out.println("Message sent");
                 break;
             }
-            System.out.println("Please enter a message of less than 250 characters.");
         }
 
         Message msg = new Message(recipient, text);
+        msg.setSender(currentUser);
         System.out.println("Message ID generated: " + msg.getMessageID());
 
-        // Send / Disregard / Store
-        System.out.println("1) Send Message");
-        System.out.println("2) Disregard Message");
-        System.out.println("3) Store Message to send later");
-        int choice = readInt(sc, "Choice: ");
-        String outcome = msg.sentMessage(choice);
-        System.out.println(outcome);
+        // Send / Disregard / Store: repeat until a valid choice is made
+        int choice;
+        while (true) {
+            System.out.println("1) Send Message");
+            System.out.println("2) Disregard Message");
+            System.out.println("3) Store Message to send later");
+            choice = readInt(sc, "Choice: ");
+            if (choice >= 1 && choice <= 3) {
+                break;
+            }
+            System.out.println("Please choose 1, 2 or 3.");
+        }
+
+        System.out.println(msg.sentMessage(choice));
 
         if (choice == 1) {
+            // Show the full details after sending
             System.out.println(msg.toDisplayString());
         } else if (choice == 2) {
             while (readInt(sc, "") != 0) {
                 System.out.println("Press 0 to delete the message.");
             }
             System.out.println("Message deleted.");
-        } else if (choice != 3) {
-            return false; // invalid choice, message not used
         }
-        return true;
     }
 
+    // ---------- Fourth main menu option: Stored Messages ----------
+
+    private static void storedMessagesMenu(Scanner sc) {
+        // Re-read the JSON file so the stored array is always up to date
+        try {
+            MessageManager.loadStoredFromJson();
+        } catch (IOException e) {
+            System.out.println("Could not read stored messages: " + e.getMessage());
+            return;
+        }
+
+        boolean back = false;
+        while (!back) {
+            System.out.println("\nStored Messages:");
+            System.out.println("1) Display sender and recipient of all stored messages");
+            System.out.println("2) Display the longest stored message");
+            System.out.println("3) Search for a message ID");
+            System.out.println("4) Search for all messages for a recipient");
+            System.out.println("5) Delete a message using its hash");
+            System.out.println("6) Display a report of all stored messages");
+            System.out.println("0) Back");
+
+            switch (readInt(sc, "Choice: ")) {
+                case 1 -> System.out.println(MessageManager.displaySenderAndRecipient());
+                case 2 -> System.out.println(MessageManager.longestStoredMessage());
+                case 3 -> {
+                    System.out.print("Enter message ID: ");
+                    System.out.println(MessageManager.searchByMessageID(sc.nextLine().trim()));
+                }
+                case 4 -> {
+                    System.out.print("Enter recipient number: ");
+                    List<String> found = MessageManager.searchByRecipient(sc.nextLine().trim());
+                    if (found.isEmpty()) {
+                        System.out.println("No messages found for that recipient.");
+                    } else {
+                        for (String text : found) {
+                            System.out.println("\"" + text + "\"");
+                        }
+                    }
+                }
+                case 5 -> {
+                    System.out.print("Enter message hash: ");
+                    System.out.println(MessageManager.deleteByHash(sc.nextLine().trim()));
+                }
+                case 6 -> System.out.println(MessageManager.reportStored());
+                case 0 -> back = true;
+                default -> System.out.println("Please choose a number from the menu.");
+            }
+        }
+    }
+
+    // ---------- Helpers ----------
+
+    /** Keeps asking until the user types a whole number. */
     private static int readInt(Scanner sc, String prompt) {
         while (true) {
             if (!prompt.isEmpty()) {
@@ -215,13 +293,12 @@ public class Convoapp {
         }
     }
 
-    /** Placeholder for your Part 1 login. Replace with your own Login class. */
+    /** Placeholder for your Part 1 login. Replace this with your own Login class. */
     private static boolean loginStub(Scanner sc) {
         System.out.print("Username: ");
         String user = sc.nextLine();
         System.out.print("Password: ");
         String pass = sc.nextLine();
+        currentUser = user;
         return !user.isBlank() && !pass.isBlank();
-    }
-}
-}
+    }}
