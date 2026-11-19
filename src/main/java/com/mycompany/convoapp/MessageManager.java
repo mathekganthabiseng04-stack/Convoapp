@@ -82,9 +82,8 @@ public class MessageManager {
         return longest.getMessageText();
     }
 
-    /**
-     * Returns the message with this ID, or null if it is not found.
-     */
+    //Returns the message with this ID, or null if it is not found.
+    
     public static Message findByMessageID(String id) {
         for (Message m : allMessages()) {
             if (m.getMessageID().equals(id)) {
