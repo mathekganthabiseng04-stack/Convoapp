@@ -15,7 +15,6 @@ import java.util.List;
  */
 public class MessageManager {
 
-
     // The five arrays required by the assignment
     private static final List<Message> sentMessages = new ArrayList<>();
     private static final List<Message> disregardedMessages = new ArrayList<>();
@@ -24,7 +23,6 @@ public class MessageManager {
     private static final List<String> messageIDs = new ArrayList<>();
 
     // ---------- Populating the arrays ----------
-
     public static void addSent(Message m) {
         sentMessages.add(m);
         refreshIdAndHashArrays();
@@ -35,14 +33,12 @@ public class MessageManager {
         refreshIdAndHashArrays();
     }
 
-  
     public static void loadStoredFromJson() throws IOException {
         storedMessages.clear();
         storedMessages.addAll(Message.loadStoredMessages());
         refreshIdAndHashArrays();
     }
 
-    
     private static void refreshIdAndHashArrays() {
         messageHashes.clear();
         messageIDs.clear();
@@ -60,8 +56,6 @@ public class MessageManager {
         return all;
     }
 
-    
-
     public static String displaySenderAndRecipient() {
         if (storedMessages.isEmpty()) {
             return "There are no stored messages.";
@@ -69,13 +63,11 @@ public class MessageManager {
         StringBuilder sb = new StringBuilder();
         for (Message m : storedMessages) {
             sb.append("Sender: ").append(m.getSender())
-              .append(" | Recipient: ").append(m.getRecipient())
-              .append(System.lineSeparator());
+                    .append(" | Recipient: ").append(m.getRecipient())
+                    .append(System.lineSeparator());
         }
         return sb.toString();
     }
-
-   
 
     public static String longestStoredMessage() {
         if (storedMessages.isEmpty()) {
@@ -90,9 +82,9 @@ public class MessageManager {
         return longest.getMessageText();
     }
 
-    
-
-    /** Returns the message with this ID, or null if it is not found. */
+    /**
+     * Returns the message with this ID, or null if it is not found.
+     */
     public static Message findByMessageID(String id) {
         for (Message m : allMessages()) {
             if (m.getMessageID().equals(id)) {
@@ -110,8 +102,6 @@ public class MessageManager {
         return "Recipient: " + m.getRecipient() + "\nMessage: " + m.getMessageText();
     }
 
- 
-
     public static List<String> searchByRecipient(String recipient) {
         List<String> results = new ArrayList<>();
         for (Message m : sentMessages) {
@@ -126,8 +116,6 @@ public class MessageManager {
         }
         return results;
     }
-
-   
 
     public static String deleteByHash(String hash) {
         Message target = null;
@@ -151,8 +139,6 @@ public class MessageManager {
         return "Message: \"" + target.getMessageText() + "\" successfully deleted.";
     }
 
-   
-
     public static String reportStored() {
         return buildReport("STORED MESSAGES REPORT", storedMessages);
     }
@@ -168,22 +154,34 @@ public class MessageManager {
         }
         for (Message m : list) {
             sb.append("-----------------------------").append(System.lineSeparator())
-              .append("Message ID:   ").append(m.getMessageID()).append(System.lineSeparator())
-              .append("Message Hash: ").append(m.getMessageHash()).append(System.lineSeparator())
-              .append("Sender:       ").append(m.getSender()).append(System.lineSeparator())
-              .append("Recipient:    ").append(m.getRecipient()).append(System.lineSeparator())
-              .append("Message:      ").append(m.getMessageText()).append(System.lineSeparator());
+                    .append("Message ID:   ").append(m.getMessageID()).append(System.lineSeparator())
+                    .append("Message Hash: ").append(m.getMessageHash()).append(System.lineSeparator())
+                    .append("Sender:       ").append(m.getSender()).append(System.lineSeparator())
+                    .append("Recipient:    ").append(m.getRecipient()).append(System.lineSeparator())
+                    .append("Message:      ").append(m.getMessageText()).append(System.lineSeparator());
         }
         return sb.toString();
     }
 
- 
+    public static List<Message> getSentMessages() {
+        return sentMessages;
+    }
 
-    public static List<Message> getSentMessages() { return sentMessages; }
-    public static List<Message> getDisregardedMessages() { return disregardedMessages; }
-    public static List<Message> getStoredMessages() { return storedMessages; }
-    public static List<String> getMessageHashes() { return messageHashes; }
-    public static List<String> getMessageIDs() { return messageIDs; }
+    public static List<Message> getDisregardedMessages() {
+        return disregardedMessages;
+    }
+
+    public static List<Message> getStoredMessages() {
+        return storedMessages;
+    }
+
+    public static List<String> getMessageHashes() {
+        return messageHashes;
+    }
+
+    public static List<String> getMessageIDs() {
+        return messageIDs;
+    }
 
     public static List<String> getSentMessageTexts() {
         List<String> texts = new ArrayList<>();
@@ -193,7 +191,6 @@ public class MessageManager {
         return texts;
     }
 
-  
     public static void resetAll() {
         sentMessages.clear();
         disregardedMessages.clear();
@@ -202,5 +199,3 @@ public class MessageManager {
         messageIDs.clear();
     }
 }
-
-
