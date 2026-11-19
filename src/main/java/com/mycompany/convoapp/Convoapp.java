@@ -284,15 +284,5 @@ do {
         }
     }
 
-    // Placeholder for your Part 1 login. Replace this with your own Login
-    // class.
-  
-    private static boolean loginStub(Scanner sc) {
-        System.out.print("Username: ");
-        String user = sc.nextLine();
-        System.out.print("Password: ");
-        String pass = sc.nextLine();
-        currentUser = user;
-        return !user.isBlank() && !pass.isBlank();
-    }
+   
 }
