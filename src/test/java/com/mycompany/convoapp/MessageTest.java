@@ -38,7 +38,7 @@ class MessageTest {
                 "Hi Keegan, did you receive the payment?");
     }
 
-    // ---------- Message length ----------
+    
 
     @Test
     void messageLengthSuccess() {
@@ -53,7 +53,7 @@ class MessageTest {
                 Message.checkMessageLength(longMessage));
     }
 
-    // ---------- Recipient number ----------
+    // 
 
     @Test
     void recipientCellSuccess() {
@@ -65,15 +65,14 @@ class MessageTest {
         assertEquals(FAIL_CELL, message2.checkRecipientCell());
     }
 
-    // ---------- Message ID ----------
-
+   
     @Test
     void messageIDIsTenCharactersOrLess() {
         assertTrue(message1.checkMessageID());
         assertEquals(10, Message.generateMessageID().length());
     }
 
-    // ---------- Message hash ----------
+   
 
     @Test
     void messageHashTestCase1() {
@@ -90,7 +89,7 @@ class MessageTest {
         }
     }
 
-    // ---------- Send / Disregard / Store options ----------
+    
 
     @Test
     void sendMessageOption() {
@@ -107,7 +106,7 @@ class MessageTest {
         assertEquals("Message successfully stored.", message1.sentMessage(3));
     }
 
-    // ---------- Totals ----------
+    
 
     @Test
     void totalMessagesSent() {
@@ -118,7 +117,7 @@ class MessageTest {
         assertTrue(Message.printMessages().contains("0012345678"));
     }
 
-    // ---------- JSON storage ----------
+    //  JSON storage 
 
     @Test
     void storeMessageWritesToJson() throws IOException {
