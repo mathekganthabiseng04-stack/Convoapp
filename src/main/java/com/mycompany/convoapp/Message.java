@@ -5,7 +5,7 @@
 package com.mycompany.convoapp;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.Gson;
- 
+ import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -24,29 +24,31 @@ import java.util.Random;
 
   
 
+
 public class Message {
 
-    private static final Gson GSON = new Gson();
-    private static final List<Message> sentMessages = new ArrayList<>();
-    private static int totalMessagesSent = 0;
+    // ---------- Shared (static) state ----------
+    // The sent / disregarded / stored / hash / ID arrays now live in MessageManager.
     private static int messagesCreated = 0;          // used as the "message number" (starts at 0)
     private static Path storageFile = Paths.get("messages.json");
 
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Random RANDOM = new Random();
 
-    
+    // ---------- Instance fields (these are what get written to JSON) ----------
     private final String messageID;
     private final int messageNumber;
     private final String recipient;
     private final String messageText;
     private final String messageHash;
+    private String sender = "Developer";
 
-   
+    /** Normal constructor: auto-generates the ID and message number. */
     public Message(String recipient, String messageText) {
         this(generateMessageID(), messagesCreated++, recipient, messageText);
     }
 
-    
+    /** Constructor that lets you supply the ID and number (useful for unit tests). */
     public Message(String messageID, int messageNumber, String recipient, String messageText) {
         this.messageID = messageID;
         this.messageNumber = messageNumber;
@@ -55,29 +57,32 @@ public class Message {
         this.messageHash = createMessageHash();
     }
 
+    // ---------- Required methods ----------
 
-
-    // Ensures the message ID is not more than ten characters. 
+    /** Ensures the message ID is not more than ten characters. */
     public boolean checkMessageID() {
         return messageID != null && messageID.length() <= 10;
     }
 
-   
+    /**
+     * Ensures the recipient number starts with an international code (+xx)
+     * and is not more than ten digits after the code.
+     */
     public String checkRecipientCell() {
         return validateRecipientCell(recipient);
     }
 
     public static String validateRecipientCell(String number) {
         // "+" then 1-3 digit country code, then 1-10 digits
-        if (number != null && number.matches("^\\+27\\d{1,3}\\d{1,10}$")) {
+        if (number != null && number.matches("^\\+\\d{1,3}\\d{1,10}$")) {
             return "Cell phone number successfully captured.";
         }
         return "Cell phone number is incorrectly formatted or does not contain an "
                 + "international code. Please correct the number and try again.";
     }
 
-   
-    public final String createMessageHash() {
+    /** Hash = first two digits of ID : message number : FIRSTWORDLASTWORD (all caps). */
+    public String createMessageHash() {
         String firstTwo = messageID.substring(0, Math.min(2, messageID.length()));
 
         String[] words = messageText.trim().split("\\s+");
@@ -87,49 +92,48 @@ public class Message {
         return (firstTwo + ":" + messageNumber + ":" + first + last).toUpperCase();
     }
 
-    // Lets the user choose what to do with the message.
-    //1 = send, 2 = disregard, 3 = store.
-    
+    /**
+     * Lets the user choose what to do with the message.
+     * 1 = send, 2 = disregard, 3 = store.
+     */
     public String sentMessage(int choice) {
         switch (choice) {
-            case 1 -> {
-                sentMessages.add(this);
-                totalMessagesSent++;
+            case 1:
+                MessageManager.addSent(this);
                 return "Message successfully sent.";
-            }
-            case 2 -> {
+            case 2:
+                MessageManager.addDisregarded(this);
                 return "Press 0 to delete the message.";
-            }
-            case 3 -> {
+            case 3:
                 try {
-                    storeMessage();
+                    storeMessage();                         // write to messages.json
+                    MessageManager.loadStoredFromJson();    // read it back into the stored array
                     return "Message successfully stored.";
                 } catch (IOException e) {
                     return "Message could not be stored: " + e.getMessage();
                 }
-            }
-            default -> {
+            default:
                 return "Invalid option.";
-            }
         }
     }
 
-  
+    /** Returns every message sent while the program is running. */
     public static String printMessages() {
         StringBuilder sb = new StringBuilder();
-        for (Message m : sentMessages) {
+        for (Message m : MessageManager.getSentMessages()) {
             sb.append(m.toDisplayString()).append(System.lineSeparator());
         }
         return sb.toString();
     }
 
-    // Returns the total number of messages sent. 
+    /** Returns the total number of messages sent. */
     public static int returnTotalMessages() {
-        return totalMessagesSent;
+        return MessageManager.getSentMessages().size();
     }
 
+    // ---------- Extra helpers ----------
 
-    
+    /** Checks the 250 character limit (used by the unit tests). */
     public static String checkMessageLength(String text) {
         int length = text == null ? 0 : text.length();
         if (length <= 250) {
@@ -138,7 +142,7 @@ public class Message {
         return "Message exceeds 250 characters by " + (length - 250) + "; please reduce the size.";
     }
 
-    // Full details in the required order: ID, Hash, Recipient, Message. 
+    /** Full details in the required order: ID, Hash, Recipient, Message. */
     public String toDisplayString() {
         return "Message ID: " + messageID
                 + "\nMessage Hash: " + messageHash
@@ -160,16 +164,21 @@ public class Message {
         return word.replaceAll("[^A-Za-z0-9]", "");
     }
 
-    // JSON storage 
+    // ---------- JSON storage ----------
+
+    /** Appends this message to the JSON file (creates the file if needed). */
     public void storeMessage() throws IOException {
         List<Message> all = loadStoredMessages();
         all.add(this);
-        Files.writeString(storageFile, GSON.toJson(all), StandardCharsets.UTF_8);
+        writeStoredFile(all);
     }
 
-    /** Reads all messages currently stored in the JSON file.
-     * @return 
-     * @throws java.io.IOException */
+   
+    public static void writeStoredFile(List<Message> messages) throws IOException {
+        Files.writeString(storageFile, GSON.toJson(messages), StandardCharsets.UTF_8);
+    }
+
+    //Reads all messages  stored in the JSON file.
     public static List<Message> loadStoredMessages() throws IOException {
         if (!Files.exists(storageFile)) {
             return new ArrayList<>();
@@ -187,18 +196,23 @@ public class Message {
         storageFile = path;
     }
 
-    
+    // Resets counters and all the arrays
     public static void resetState() {
-        sentMessages.clear();
-        totalMessagesSent = 0;
+        MessageManager.resetAll();
         messagesCreated = 0;
     }
 
-    
+    // ---------- Getters and setters ----------
     public String getMessageID() { return messageID; }
     public int getMessageNumber() { return messageNumber; }
     public String getRecipient() { return recipient; }
     public String getMessageText() { return messageText; }
     public String getMessageHash() { return messageHash; }
-}
 
+    public String getSender() {
+        // Gson skips field initialisers, so an older messages.json without a sender gives null
+        return sender == null ? "Developer" : sender;
+    }
+
+    public void setSender(String sender) { this.sender = sender; }
+}
