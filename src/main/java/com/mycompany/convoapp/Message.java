@@ -3,9 +3,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mycompany.convoapp;
+
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.Gson;
- import com.google.gson.GsonBuilder;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -21,10 +22,6 @@ import java.util.Random;
  *
  * @author admin
  */
-
-  
-
-
 public class Message {
 
     // ---------- Shared (static) state ----------
@@ -43,12 +40,17 @@ public class Message {
     private final String messageHash;
     private String sender = "Developer";
 
-    /** Normal constructor: auto-generates the ID and message number. */
+    /**
+     * Normal constructor: auto-generates the ID and message number.
+     */
     public Message(String recipient, String messageText) {
         this(generateMessageID(), messagesCreated++, recipient, messageText);
     }
 
-    /** Constructor that lets you supply the ID and number (useful for unit tests). */
+    /**
+     * Constructor that lets you supply the ID and number (useful for unit
+     * tests).
+     */
     public Message(String messageID, int messageNumber, String recipient, String messageText) {
         this.messageID = messageID;
         this.messageNumber = messageNumber;
@@ -58,15 +60,16 @@ public class Message {
     }
 
     // ---------- Required methods ----------
-
-    /** Ensures the message ID is not more than ten characters. */
+    /**
+     * Ensures the message ID is not more than ten characters.
+     */
     public boolean checkMessageID() {
         return messageID != null && messageID.length() <= 10;
     }
 
     /**
-     * Ensures the recipient number starts with an international code (+xx)
-     * and is not more than ten digits after the code.
+     * Ensures the recipient number starts with an international code (+xx) and
+     * is not more than ten digits after the code.
      */
     public String checkRecipientCell() {
         return validateRecipientCell(recipient);
@@ -81,7 +84,10 @@ public class Message {
                 + "international code. Please correct the number and try again.";
     }
 
-    /** Hash = first two digits of ID : message number : FIRSTWORDLASTWORD (all caps). */
+    /**
+     * Hash = first two digits of ID : message number : FIRSTWORDLASTWORD (all
+     * caps).
+     */
     public String createMessageHash() {
         String firstTwo = messageID.substring(0, Math.min(2, messageID.length()));
 
@@ -93,8 +99,8 @@ public class Message {
     }
 
     /**
-     * Lets the user choose what to do with the message.
-     * 1 = send, 2 = disregard, 3 = store.
+     * Lets the user choose what to do with the message. 1 = send, 2 =
+     * disregard, 3 = store.
      */
     public String sentMessage(int choice) {
         switch (choice) {
@@ -117,7 +123,9 @@ public class Message {
         }
     }
 
-    /** Returns every message sent while the program is running. */
+    /**
+     * Returns every message sent while the program is running.
+     */
     public static String printMessages() {
         StringBuilder sb = new StringBuilder();
         for (Message m : MessageManager.getSentMessages()) {
@@ -126,14 +134,17 @@ public class Message {
         return sb.toString();
     }
 
-    /** Returns the total number of messages sent. */
+    /**
+     * Returns the total number of messages sent.
+     */
     public static int returnTotalMessages() {
         return MessageManager.getSentMessages().size();
     }
 
     // ---------- Extra helpers ----------
-
-    /** Checks the 250 character limit (used by the unit tests). */
+    /**
+     * Checks the 250 character limit (used by the unit tests).
+     */
     public static String checkMessageLength(String text) {
         int length = text == null ? 0 : text.length();
         if (length <= 250) {
@@ -142,7 +153,9 @@ public class Message {
         return "Message exceeds 250 characters by " + (length - 250) + "; please reduce the size.";
     }
 
-    /** Full details in the required order: ID, Hash, Recipient, Message. */
+    /**
+     * Full details in the required order: ID, Hash, Recipient, Message.
+     */
     public String toDisplayString() {
         return "Message ID: " + messageID
                 + "\nMessage Hash: " + messageHash
@@ -165,15 +178,15 @@ public class Message {
     }
 
     // ---------- JSON storage ----------
-
-    /** Appends this message to the JSON file (creates the file if needed). */
+    /**
+     * Appends this message to the JSON file (creates the file if needed).
+     */
     public void storeMessage() throws IOException {
         List<Message> all = loadStoredMessages();
         all.add(this);
         writeStoredFile(all);
     }
 
-   
     public static void writeStoredFile(List<Message> messages) throws IOException {
         Files.writeString(storageFile, GSON.toJson(messages), StandardCharsets.UTF_8);
     }
@@ -187,7 +200,8 @@ public class Message {
         if (json.isBlank()) {
             return new ArrayList<>();
         }
-        Type listType = new TypeToken<ArrayList<Message>>() {}.getType();
+        Type listType = new TypeToken<ArrayList<Message>>() {
+        }.getType();
         List<Message> loaded = GSON.fromJson(json, listType);
         return loaded == null ? new ArrayList<>() : loaded;
     }
@@ -203,16 +217,32 @@ public class Message {
     }
 
     // ---------- Getters and setters ----------
-    public String getMessageID() { return messageID; }
-    public int getMessageNumber() { return messageNumber; }
-    public String getRecipient() { return recipient; }
-    public String getMessageText() { return messageText; }
-    public String getMessageHash() { return messageHash; }
+    public String getMessageID() {
+        return messageID;
+    }
+
+    public int getMessageNumber() {
+        return messageNumber;
+    }
+
+    public String getRecipient() {
+        return recipient;
+    }
+
+    public String getMessageText() {
+        return messageText;
+    }
+
+    public String getMessageHash() {
+        return messageHash;
+    }
 
     public String getSender() {
         // Gson skips field initialisers, so an older messages.json without a sender gives null
         return sender == null ? "Developer" : sender;
     }
 
-    public void setSender(String sender) { this.sender = sender; }
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
 }
