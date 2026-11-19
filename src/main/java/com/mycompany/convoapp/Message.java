@@ -24,33 +24,26 @@ import java.util.Random;
  */
 public class Message {
 
-    // ---------- Shared (static) state ----------
-    // The sent / disregarded / stored / hash / ID arrays now live in MessageManager.
+   
     private static int messagesCreated = 0;          // used as the "message number" (starts at 0)
     private static Path storageFile = Paths.get("messages.json");
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Random RANDOM = new Random();
 
-    // ---------- Instance fields (these are what get written to JSON) ----------
+   
     private final String messageID;
     private final int messageNumber;
     private final String recipient;
     private final String messageText;
     private final String messageHash;
     private String sender = "Developer";
-
-    /**
-     * Normal constructor: auto-generates the ID and message number.
-     */
+    
+    
     public Message(String recipient, String messageText) {
         this(generateMessageID(), messagesCreated++, recipient, messageText);
     }
 
-    /**
-     * Constructor that lets you supply the ID and number (useful for unit
-     * tests).
-     */
     public Message(String messageID, int messageNumber, String recipient, String messageText) {
         this.messageID = messageID;
         this.messageNumber = messageNumber;
@@ -59,18 +52,11 @@ public class Message {
         this.messageHash = createMessageHash();
     }
 
-    // ---------- Required methods ----------
-    /**
-     * Ensures the message ID is not more than ten characters.
-     */
+    
     public boolean checkMessageID() {
         return messageID != null && messageID.length() <= 10;
     }
 
-    /**
-     * Ensures the recipient number starts with an international code (+xx) and
-     * is not more than ten digits after the code.
-     */
     public String checkRecipientCell() {
         return validateRecipientCell(recipient);
     }
@@ -84,10 +70,8 @@ public class Message {
                 + "international code. Please correct the number and try again.";
     }
 
-    /**
-     * Hash = first two digits of ID : message number : FIRSTWORDLASTWORD (all
-     * caps).
-     */
+    // Hash = first two digits of ID : message number : FIRSTWORDLASTWORD (all caps).
+     
     public String createMessageHash() {
         String firstTwo = messageID.substring(0, Math.min(2, messageID.length()));
 
@@ -98,10 +82,8 @@ public class Message {
         return (firstTwo + ":" + messageNumber + ":" + first + last).toUpperCase();
     }
 
-    /**
-     * Lets the user choose what to do with the message. 1 = send, 2 =
-     * disregard, 3 = store.
-     */
+    // Lets the user choose what to do with the message. 1 = send, 2 =
+     // disregard, 3 = store.
     public String sentMessage(int choice) {
         switch (choice) {
             case 1:
@@ -123,9 +105,8 @@ public class Message {
         }
     }
 
-    /**
-     * Returns every message sent while the program is running.
-     */
+    // Returns every message sent while the program is running.
+   
     public static String printMessages() {
         StringBuilder sb = new StringBuilder();
         for (Message m : MessageManager.getSentMessages()) {
@@ -134,17 +115,15 @@ public class Message {
         return sb.toString();
     }
 
-    /**
-     * Returns the total number of messages sent.
-     */
+    //Returns the total number of messages sent.
+    
     public static int returnTotalMessages() {
         return MessageManager.getSentMessages().size();
     }
 
-    // ---------- Extra helpers ----------
-    /**
-     * Checks the 250 character limit (used by the unit tests).
-     */
+   
+    // Checks the 250 character limit (used by the unit tests).
+     
     public static String checkMessageLength(String text) {
         int length = text == null ? 0 : text.length();
         if (length <= 250) {
@@ -153,9 +132,8 @@ public class Message {
         return "Message exceeds 250 characters by " + (length - 250) + "; please reduce the size.";
     }
 
-    /**
-     * Full details in the required order: ID, Hash, Recipient, Message.
-     */
+    //Full details in the required order: ID, Hash, Recipient, Message.
+     
     public String toDisplayString() {
         return "Message ID: " + messageID
                 + "\nMessage Hash: " + messageHash
@@ -177,10 +155,8 @@ public class Message {
         return word.replaceAll("[^A-Za-z0-9]", "");
     }
 
-    // ---------- JSON storage ----------
-    /**
-     * Appends this message to the JSON file (creates the file if needed).
-     */
+    // JSON storage 
+   
     public void storeMessage() throws IOException {
         List<Message> all = loadStoredMessages();
         all.add(this);
@@ -216,7 +192,7 @@ public class Message {
         messagesCreated = 0;
     }
 
-    // ---------- Getters and setters ----------
+    
     public String getMessageID() {
         return messageID;
     }
